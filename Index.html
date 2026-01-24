@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Knee Flexion Prototype</title>
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0"></script>
@@ -9,26 +10,49 @@
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script>
 </head>
 <body>
-  <h1>Knee Flexion Jump Landing</h1>
+  <header>
+    <h1>Knee Flexion Jump Landing</h1>
+  </header>
 
-  <div id="controls">
-    <button id="leftLegBtn">Test Left Leg</button>
-    <button id="rightLegBtn">Test Right Leg</button>
-    <span id="status"></span>
+  <div id="controls" class="controls">
+    <div class="camera-controls">
+      <button id="startBtn">Start Camera</button>
+      <button id="stopBtn" disabled>Stop Camera</button>
+      <button id="flipBtn" disabled>Flip Camera</button>
+    </div>
+
+    <div class="trial-controls">
+      <button id="leftLegBtn" disabled>Test Left Leg</button>
+      <button id="rightLegBtn" disabled>Test Right Leg</button>
+    </div>
+
+    <div class="status-row">
+      <span id="status">Idle</span>
+      <span class="spacer"></span>
+      <div>Current leg: <strong id="currentLeg">None</strong></div>
+      <div>Trial: <strong id="trialCount">0</strong> / 3</div>
+      <div>Angle: <strong id="angleDisplay">0</strong>°</div>
+    </div>
   </div>
 
-  <div id="video-container">
-    <video id="video" playsinline></video>
-    <canvas id="overlay"></canvas>
-  </div>
+  <main>
+    <div id="video-container">
+      <video id="video" autoplay muted playsinline></video>
+      <canvas id="overlay"></canvas>
+    </div>
 
-  <div id="info">
-    <div>Current leg: <span id="currentLeg">None</span></div>
-    <div>Trial: <span id="trialCount">0</span> / 3</div>
-    <div>Angle: <span id="angleDisplay">0</span>°</div>
-  </div>
+    <section id="info">
+      <pre id="results"></pre>
+    </section>
+  </main>
 
-  <pre id="results"></pre>
+  <!-- Loading overlay -->
+  <div id="loading" class="loading">
+    <div class="loading-content">
+      <div class="spinner" aria-hidden="true"></div>
+      <div class="loading-text">Loading camera and models…</div>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>
