@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Knee Flexion Prototype</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script>
+</head>
+<body>
+  <h1>Knee Flexion Jump Landing</h1>
+
+  <div id="controls">
+    <button id="leftLegBtn">Test Left Leg</button>
+    <button id="rightLegBtn">Test Right Leg</button>
+    <span id="status"></span>
+  </div>
+
+  <div id="video-container">
+    <video id="video" playsinline></video>
+    <canvas id="overlay"></canvas>
+  </div>
+
+  <div id="info">
+    <div>Current leg: <span id="currentLeg">None</span></div>
+    <div>Trial: <span id="trialCount">0</span> / 3</div>
+    <div>Angle: <span id="angleDisplay">0</span>°</div>
+  </div>
+
+  <pre id="results"></pre>
+
+  <script src="script.js"></script>
+</body>
+</html>
