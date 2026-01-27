@@ -20,30 +20,136 @@ let peakWindow = null;
 // One-Euro-like simple smoothing
 let lastFilteredAngle = null;
 
-async function setup() {
+let currentFacing = 'user'; // 'user' (front) or 'environment' (rear)
+
+window.onload = initUI;
+
+function initUI() {
   video = document.getElementById('video');
   canvas = document.getElementById('overlay');
   ctx = canvas.getContext('2d');
 
-  await setupCamera();
-  await setupDetector();
+  // UI elements
+  const startBtn = document.getElementById('startBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const flipBtn = document.getElementById('flipBtn');
+  const leftBtn = document.getElementById('leftLegBtn');
+  const rightBtn = document.getElementById('rightLegBtn');
 
-  document.getElementById('leftLegBtn').onclick = () => startLeg('left');
-  document.getElementById('rightLegBtn').onclick = () => startLeg('right');
+  startBtn.onclick = async () => {
+    startBtn.disabled = true;
+    showLoading();
+    await startCamera(currentFacing);
+    await setupDetector();
+    hideLoading();
+    stopBtn.disabled = false;
+    flipBtn.disabled = false;
+    leftBtn.disabled = false;
+    rightBtn.disabled = false;
+    document.getElementById('status').textContent = 'Ready – perform jump landings';
+    requestAnimationFrame(loop);
+  };
 
-  requestAnimationFrame(loop);
+  stopBtn.onclick = () => {
+    stopCamera();
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+    flipBtn.disabled = true;
+    leftBtn.disabled = true;
+    rightBtn.disabled = true;
+    document.getElementById('status').textContent = 'Camera stopped';
+  };
+
+  flipBtn.onclick = async () => {
+    currentFacing = currentFacing === 'user' ? 'environment' : 'user';
+    // restart camera with new facing
+    showLoading();
+    await startCamera(currentFacing);
+    hideLoading();
+    document.getElementById('status').textContent = `Camera flipped to ${currentFacing}`;
+  };
+
+  leftBtn.onclick = () => startLeg('left');
+  rightBtn.onclick = () => startLeg('right');
+
+  // Try auto-starting camera; if blocked, user can press "Start Camera"
+  (async () => {
+    try {
+      showLoading();
+      await startCamera(currentFacing);
+      await setupDetector();
+      hideLoading();
+      stopBtn.disabled = false;
+      flipBtn.disabled = false;
+      leftBtn.disabled = false;
+      rightBtn.disabled = false;
+      document.getElementById('status').textContent = 'Ready – perform jump landings';
+      requestAnimationFrame(loop);
+    } catch (err) {
+      // Autostart may fail in some browsers without user gesture; leave UI to start manually
+      hideLoading();
+      console.warn('Autostart failed (user gesture may be required):', err);
+      document.getElementById('startBtn').disabled = false;
+      document.getElementById('status').textContent = 'Press "Start Camera" to begin';
+    }
+  })();
 }
 
-async function setupCamera() {
-  const stream = await navigator.mediaDevices.getUserMedia({
-    video: { width: 480, height: 360 },
-    audio: false
-  });
+function showLoading() {
+  const el = document.getElementById('loading');
+  if (el) el.style.display = 'flex';
+}
+
+function hideLoading() {
+  const el = document.getElementById('loading');
+  if (el) el.style.display = 'none';
+}
+
+async function startCamera(facing = 'user') {
+  // Stop existing tracks if any
+  stopCamera();
+
+  const constraints = {
+    audio: false,
+    video: {
+      width: { ideal: 640 },
+      height: { ideal: 480 },
+      facingMode: { ideal: facing } // 'user' for front camera
+    }
+  };
+
+  const stream = await navigator.mediaDevices.getUserMedia(constraints);
   video.srcObject = stream;
+
+  // Wait until the video has dimensions
   await video.play();
+
+  // Ensure canvas matches actual video dimensions
+  resizeCanvasToVideo();
+}
+
+function stopCamera() {
+  if (video && video.srcObject) {
+    const tracks = video.srcObject.getTracks();
+    tracks.forEach(t => t.stop());
+    video.srcObject = null;
+  }
+}
+
+function resizeCanvasToVideo() {
+  const w = video.videoWidth || video.clientWidth || 480;
+  const h = video.videoHeight || video.clientHeight || 360;
+
+  canvas.width = w;
+  canvas.height = h;
+
+  // Ensure CSS size covers the container (we use object-fit: cover)
+  canvas.style.width = '100%';
+  canvas.style.height = '100%';
 }
 
 async function setupDetector() {
+  // Create the MoveNet detector (same as before)
   detector = await poseDetection.createDetector(
     poseDetection.SupportedModels.MoveNet,
     {
@@ -52,6 +158,7 @@ async function setupDetector() {
   );
 }
 
+// Existing startLeg and related logic preserved, but ensure UI updates remain
 function startLeg(leg) {
   currentLeg = leg;
   trialCount = 0;
@@ -192,15 +299,13 @@ function recordTrial(peak) {
 
   if (trialCount >= maxTrials) {
     document.getElementById('status').textContent =
-      `Completed 3 trials for ${currentLeg} leg. Switch leg or view results in console.`;
+      `Completed ${maxTrials} trials for ${currentLeg} leg.`;
     trialCount = 0;
     currentLeg = null;
     document.getElementById('currentLeg').textContent = 'None';
     showResults();
   }
 }
-
-// --- Results ---
 
 function showResults() {
   const resEl = document.getElementById('results');
@@ -230,6 +335,8 @@ function avg(arr) {
 // --- Drawing ---
 
 function drawSkeleton(pose) {
+  if (!canvas.width || !canvas.height) resizeCanvasToVideo();
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   const pairs = [
@@ -270,5 +377,3 @@ function drawSkeleton(pose) {
     ctx.stroke();
   });
 }
-
-window.onload = setup;
