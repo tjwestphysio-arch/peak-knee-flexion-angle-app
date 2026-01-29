@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Peak knee flexion drop landing</title>
+  <style>
+    :root{
+      --bg: #0c0c0c;
+      --fg: #f7f7f7;
+      --fg-dim: #d8d8d8;
+      --outline: #ffffff;
+      --accent: #1e90ff;   /* optional highlight color */
+      --radius-xl: 28px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+      --gap-lg: 18px;
+      --gap-md: 12px;
+      --gap-sm: 8px;
+      --border: 2px;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; background: var(--bg); color: var(--fg); margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+    .shell {
+      min-height: 100%;
+      display: grid;
+      place-items: center;
+      padding: 20px env(safe-area-inset-right) 20px env(safe-area-inset-left);
+    }
+    .app {
+      width: min(420px, 94vw);
+      background: transparent;
+      border: var(--border) solid var(--outline);
+      border-radius: var(--radius-xl);
+      padding: 16px;
+    }
+    /* Header pill */
+    .title {
+      display: grid;
+      place-items: center;
+      border: var(--border) solid var(--outline);
+      border-radius: 999px;
+      padding: 10px 12px;
+      font-weight: 600;
+      margin-bottom: var(--gap-lg);
+      text-align: center;
+    }
+    /* Toolbar row (3 pills) */
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: var(--gap-md);
+      margin-bottom: var(--gap-lg);
+    }
+    .btn {
+      border: var(--border) solid var(--outline);
+      color: var(--fg);
+      background: transparent;
+      border-radius: var(--radius-lg);
+      padding: 10px 12px;
+      font: inherit;
+      cursor: pointer;
+      transition: background .15s ease, color .15s ease, transform .02s ease;
+      user-select: none;
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+    /* Stage: rounded, 4:3 area containing video/canvas */
+    .stage {
+      position: relative;
+      border: var(--border) solid var(--outline);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      aspect-ratio: 4 / 3;
+      background: #000;
+      margin-bottom: var(--gap-lg);
+    }
+    .stage video, .stage canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .stage canvas { pointer-events: none; } /* draw overlay only */
+
+    /* Results: two rounded cards */
+    .results {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--gap-md);
+    }
+    .card {
+      border: var(--border) solid var(--outline);
+      border-radius: var(--radius-lg);
+      padding: 12px;
+      min-height: 150px;
+    }
+    .card h3 {
+      margin: 0 0 8px 0;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--fg);
+    }
+    .rows {
+      display: grid; gap: 6px;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 10px;
+      align-items: baseline;
+    }
+    .label { color: var(--fg-dim); }
+    .value {
+      border-bottom: 1px solid var(--outline);
+      min-height: 18px;
+    }
+
+    /* Responsiveness */
+    @media (max-width: 380px) {
+      .app { width: 94vw; }
+      .toolbar { grid-template-columns: 1fr; }
+      .results { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <main class="app" role="application" aria-label="Peak knee flexion drop landing app">
+      <header class="title">Peak knee flexion drop landing</header>
+
+      <section class="toolbar" aria-label="Controls">
+        <button id="btnCam" class="btn" aria-label="Switch camera">Camera switch</button>
+        <button id="btnTarget" class="btn" aria-label="Select target side" data-side="left">Left</button>
+        <button id="btnLanding" class="btn" aria-label="Select landing side" data-side="left">Left</button>
+      </section>
+
+      <section class="stage" aria-label="Video stage">
+        <video id="video" playsinline muted></video>
+        <canvas id="overlay"></canvas>
+      </section>
+
+      <section class="results" aria-label="Results">
+        <article class="card" id="leftCard" aria-label="Left results">
+          <h3>Left results</h3>
+          <div class="rows">
+            <div class="row"><div class="label">Trial 1</div><div class="value" id="L_trial1"></div></div>
+            <div class="row"><div class="label">Trial 2</div><div class="value" id="L_trial2"></div></div>
+            <div class="row"><div class="label">Trial 3</div><div class="value" id="L_trial3"></div></div>
+            <div class="row"><div class="label">Average</div><div class="value" id="L_avg"></div></div>
+            <div class="row"><div class="label">Max</div><div class="value" id="L_max"></div></div>
+          </div>
+        </article>
+
+        <article class="card" id="rightCard" aria-label="Right results">
+          <h3>Right results</h3>
+          <div class="rows">
+            <div class="row"><div class="label">Trial 1</div><div class="value" id="R_trial1"></div></div>
+            <div class="row"><div class="label">Trial 2</div><div class="value" id="R_trial2"></div></div>
+            <div class="row"><div class="label">Trial 3</div><div class="value" id="R_trial3"></div></div>
+            <div class="row"><div class="label">Average</div><div class="value" id="R_avg"></div></div>
+            <div class="row"><div class="label">Max</div><div class="value" id="R_max"></div></div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <!-- Minimal JS to toggle Left/Right labels and wire buttons -->
+  <script>
+    // Button side toggles
+    function toggleSide(btn){
+      const cur = btn.dataset.side === 'left' ? 'right' : 'left';
+      btn.dataset.side = cur;
+      btn.textContent = cur.charAt(0).toUpperCase() + cur.slice(1);
+      // TODO: wire into your MoveNet state:
+      // if (btn.id === 'btnTarget') window.targetSide = cur;
+      // if (btn.id === 'btnLanding') window.landingSide = cur;
+    }
+    document.getElementById('btnTarget').addEventListener('click', (e)=>toggleSide(e.currentTarget));
+    document.getElementById('btnLanding').addEventListener('click', (e)=>toggleSide(e.currentTarget));
+
+    // Camera switch handler (placeholder)
+    document.getElementById('btnCam').addEventListener('click', async () => {
+      // TODO: implement camera enumeration + switch.
+      // Example (pseudo):
+      // const cams = await navigator.mediaDevices.enumerateDevices();
+      // pick next videoInput, stop current stream, start new one, attach to #video
+      console.log('Camera switch clicked');
+    });
+
+    // Public helpers to update the results UI (call from your analysis code)
+    window.updateResults = function(side /* 'left'|'right' */, trials /* number[] */) {
+      const prefix = side === 'left' ? 'L' : 'R';
+      for (let i=0; i<3; i++){
+        const el = document.getElementById(`${prefix}_trial${i+1}`);
+        el.textContent = trials[i] != null ? `${trials[i].toFixed(1)}°` : '';
+      }
+      const vals = trials.filter(v => Number.isFinite(v));
+      const avg = vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length) : null;
+      const max = vals.length ? Math.max(...vals) : null;
+      document.getElementById(`${prefix}_avg`).textContent = avg!=null ? `${avg.toFixed(1)}°` : '';
+      document.getElementById(`${prefix}_max`).textContent = max!=null ? `${max.toFixed(1)}°` : '';
+    };
+
+    // Expose a simple API the rest of your app can use:
+    window.ui = {
+      get targetSide(){ return document.getElementById('btnTarget').dataset.side; },
+      get landingSide(){ return document.getElementById('btnLanding').dataset.side; },
+      videoEl: document.getElementById('video'),
+      canvasEl: document.getElementById('overlay'),
+    };
+  </script>
+</body>
+</html>
