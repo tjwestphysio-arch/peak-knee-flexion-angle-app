@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Knee Flexion Prototype</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="title-pill">Peak knee flexion drop landing</div>
+    </header>
+
+    <div class="controls-row">
+      <div class="controls-left">
+        <!-- Keep existing IDs for JS compatibility -->
+        <button id="startBtn">Start Camera</button>
+        <button id="stopBtn" disabled>Stop Camera</button>
+        <button id="flipBtn" disabled>Camera switch</button>
+      </div>
+
+      <div class="controls-right">
+        <button id="leftLegBtn" disabled>Left</button>
+        <button id="rightLegBtn" disabled>Right</button>
+      </div>
+    </div>
+
+    <main class="main-area">
+      <div id="video-wrap" class="video-wrap">
+        <video id="video" autoplay muted playsinline></video>
+        <canvas id="overlay"></canvas>
+      </div>
+
+      <div class="results-row">
+        <div class="results-card" id="left-results">
+          <h3>Left results</h3>
+          <div class="result-line">Trial 1: ______</div>
+          <div class="result-line">Trial 2: ______</div>
+          <div class="result-line">Trial 3: ______</div>
+          <div class="result-line">Average: ______</div>
+          <div class="result-line">Max: ______</div>
+        </div>
+
+        <div class="results-card" id="right-results">
+          <h3>Right results</h3>
+          <div class="result-line">Trial 1: ______</div>
+          <div class="result-line">Trial 2: ______</div>
+          <div class="result-line">Trial 3: ______</div>
+          <div class="result-line">Average: ______</div>
+          <div class="result-line">Max: ______</div>
+        </div>
+      </div>
+
+      <!-- Hidden legacy results block (kept for compatibility) -->
+      <section id="info" class="sr-only">
+        <pre id="results"></pre>
+      </section>
+    </main>
+
+    <div id="status-bar" class="status-bar">
+      <span id="status">Idle</span>
+      <span class="spacer"></span>
+      <div>Current leg: <strong id="currentLeg">None</strong></div>
+      <div>Trial: <strong id="trialCount">0</strong> / 3</div>
+      <div>Angle: <strong id="angleDisplay">0</strong>°</div>
+    </div>
+
+    <!-- Loading overlay (kept as-is) -->
+    <div id="loading" class="loading">
+      <div class="loading-content">
+        <div class="spinner" aria-hidden="true"></div>
+        <div class="loading-text">Loading camera and models…</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
