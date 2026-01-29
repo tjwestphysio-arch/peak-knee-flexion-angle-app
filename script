@@ -1,0 +1,63 @@
+// ... (keep the rest of the file unchanged) ...
+
+// NEW showResults implementation (replace existing showResults function)
+function showResults() {
+  const leftEl = document.getElementById('left-results');
+  const rightEl = document.getElementById('right-results');
+
+  const leftMax = leftTrials.length ? Math.max(...leftTrials) : 0;
+  const rightMax = rightTrials.length ? Math.max(...rightTrials) : 0;
+  const leftAvg = leftTrials.length ? avg(leftTrials) : 0;
+  const rightAvg = rightTrials.length ? avg(rightTrials) : 0;
+
+  // Helper to render up to three trials with blanks if missing
+  function renderTrials(arr) {
+    const lines = [];
+    for (let i = 0; i < 3; i++) {
+      lines.push(arr[i] !== undefined ? `${arr[i].toFixed(1)}°` : '______');
+    }
+    return lines;
+  }
+
+  const leftLines = renderTrials(leftTrials);
+  const rightLines = renderTrials(rightTrials);
+
+  if (leftEl) {
+    leftEl.innerHTML = `
+      <h3>Left results</h3>
+      <div class="result-line">Trial 1: ${leftLines[0]}</div>
+      <div class="result-line">Trial 2: ${leftLines[1]}</div>
+      <div class="result-line">Trial 3: ${leftLines[2]}</div>
+      <div class="result-line">Average: ${leftTrials.length ? leftAvg.toFixed(1) + '°' : '______'}</div>
+      <div class="result-line">Max: ${leftTrials.length ? leftMax.toFixed(1) + '°' : '______'}</div>
+    `;
+  }
+
+  if (rightEl) {
+    rightEl.innerHTML = `
+      <h3>Right results</h3>
+      <div class="result-line">Trial 1: ${rightLines[0]}</div>
+      <div class="result-line">Trial 2: ${rightLines[1]}</div>
+      <div class="result-line">Trial 3: ${rightLines[2]}</div>
+      <div class="result-line">Average: ${rightTrials.length ? rightAvg.toFixed(1) + '°' : '______'}</div>
+      <div class="result-line">Max: ${rightTrials.length ? rightMax.toFixed(1) + '°' : '______'}</div>
+    `;
+  }
+
+  // Keep legacy pre block updated as well (if present)
+  const resEl = document.getElementById('results');
+  if (resEl) {
+    resEl.textContent = `
+Left trials:  ${leftTrials.map(v => v.toFixed(1)).join(', ')}
+Right trials: ${rightTrials.map(v => v.toFixed(1)).join(', ')}
+
+Left max:  ${leftMax.toFixed(1)}°
+Right max: ${rightMax.toFixed(1)}°
+
+Left avg:  ${leftAvg.toFixed(1)}°
+Right avg: ${rightAvg.toFixed(1)}°
+`;
+  }
+}
+
+// ... (rest of the file unchanged) ...
